@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Map · Meet Halfway{% endblock %}
+
+{% block extra_css %}
+  {# Leaflet 1.9.4 (same version as the labs). #}
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H"
+        crossorigin="anonymous">
+{% endblock %}
+
+{% block navbar_actions %}
+  {# Only shown on small screens, where the sidebar becomes a slide-in panel. #}
+  <button class="btn btn-outline-light btn-sm d-lg-none" type="button"
+          data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar">
+    <i class="bi bi-layout-sidebar-inset" aria-hidden="true"></i>
+    Group
+  </button>
+{% endblock %}
+
+{% block content %}
+<div class="app-layout">
+
+  {# Sidebar: a normal column on large screens, a slide-in panel on phones and tablets. #}
+  <aside class="app-sidebar" aria-label="Group panel">
+    <div class="offcanvas-lg offcanvas-start h-100" tabindex="-1" id="sidebar" aria-labelledby="sidebar-title">
+      <div class="offcanvas-header border-bottom">
+        <h2 class="offcanvas-title h5 mb-0" id="sidebar-title">Your group</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebar"
+                aria-label="Close group panel"></button>
+      </div>
+
+      <div class="offcanvas-body d-flex flex-column gap-3 p-3">
+        <section aria-labelledby="how-title">
+          <h2 id="how-title" class="h6 text-uppercase text-body-secondary mb-2">How it works</h2>
+          <ol class="small mb-0 ps-3">
+            <li>Add where each friend is.</li>
+            <li>Meet Halfway finds the middle point of the group.</li>
+            <li>See cafés within 300&nbsp;m and how fair the spot is for everyone.</li>
+          </ol>
+        </section>
+
+        <div class="alert alert-secondary small mb-0" role="status">
+          <i class="bi bi-info-circle" aria-hidden="true"></i>
+          Your groups and friends will appear here.
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  {# The map fills the rest of the screen. #}
+  <div class="app-map-wrap">
+    <div id="map" role="region" aria-label="Interactive map of Dublin"></div>
+  </div>
+</div>
+
+{# Settings for the JavaScript, written as JSON (no inline code to run). #}
+{{ map_config|json_script:"map-config" }}
+{% endblock %}
+
+{% block extra_js %}
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH"
+          crossorigin="anonymous"></script>
+  <script src="{% static 'js/map.js' %}"></script>
+{% endblock %}

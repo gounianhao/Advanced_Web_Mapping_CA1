@@ -1,0 +1,76 @@
+/*
+ * Meet Halfway - custom styles on top of Bootstrap 5.
+ * Layout: navbar on top, then sidebar + map filling the rest of the screen.
+ */
+
+/* ---- Full-height page ---------------------------------------------------- */
+html,
+body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;   /* fallback for older browsers */
+  height: 100dvh;  /* "dynamic" height: correct on phones with moving address bars */
+}
+
+.app-main {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;   /* lets the children scroll instead of growing the page */
+}
+
+.app-main:focus {
+  outline: none;   /* focused only by the skip link; no box needed */
+}
+
+/* ---- Skip link (visible only when focused with the keyboard) ------------- */
+.skip-link:focus {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 2000;
+  padding: 0.5rem 1rem;
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  border: 2px solid var(--bs-primary);
+  border-radius: var(--bs-border-radius);
+}
+
+/* ---- Sidebar + map --------------------------------------------------------- */
+.app-layout {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+/* On large screens the sidebar is a fixed-width column next to the map.
+   On smaller screens Bootstrap's offcanvas-lg turns it into a slide-in panel. */
+@media (min-width: 992px) {
+  .app-sidebar {
+    flex: 0 0 22rem;
+    overflow-y: auto;
+    border-right: 1px solid var(--bs-border-color);
+    background-color: var(--bs-body-bg);
+  }
+}
+
+.app-map-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+#map {
+  position: absolute;
+  inset: 0;
+}
+
+/* Clear focus ring when the map is focused with the keyboard (WCAG 2.4.7). */
+.leaflet-container:focus-visible {
+  outline: 3px solid var(--bs-primary);
+  outline-offset: -3px;
+}

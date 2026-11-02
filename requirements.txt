@@ -1,0 +1,21 @@
+# Web framework (5.2 is the long-term-support release) with GeoDjango
+Django>=5.2,<6.0
+
+# PostgreSQL / PostGIS driver
+psycopg[binary]>=3.2,<4
+
+# REST API with GeoJSON support and API documentation
+djangorestframework>=3.16,<3.19
+djangorestframework-gis>=1.2,<2
+django-filter>=25.1,<27
+drf-spectacular>=0.28,<1
+
+# HTTP client: OpenStreetMap venue download and address search
+requests>=2.32,<3
+
+# Production web server
+gunicorn>=23,<27
+
+# Tests
+pytest>=8,<10
+pytest-django>=4.9,<5

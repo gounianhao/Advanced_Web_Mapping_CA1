@@ -1,0 +1,25 @@
+# --- Secrets: never commit the real environment file ---
+.env
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Django ---
+staticfiles/
+media/
+*.sqlite3
+
+# --- OS / editors ---
+.DS_Store
+.idea/
+.vscode/
+
+# --- Assignment brief and Word lock files (not part of the app) ---
+Assignment_Part1_NEW.docx
+~$*
