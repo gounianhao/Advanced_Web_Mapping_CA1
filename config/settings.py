@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_gis",  # GeoJSON serializers and bounding-box filter
     "django_filters",
+    "drf_spectacular",  # OpenAPI schema and Swagger UI at /api/docs/
     # Project apps
     "meetups",
 ]
@@ -113,6 +114,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+LOGIN_REDIRECT_URL = "meetups:map"
+LOGOUT_REDIRECT_URL = "meetups:map"
+
 
 # ---------------------------------------------------------------------------
 # Language and time
@@ -131,6 +135,19 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"  # filled by "manage.py collectstatic"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# ---------------------------------------------------------------------------
+# Cache
+# ---------------------------------------------------------------------------
+# Stored in files so that every server process in the container shares it.
+# Holds address-search results and the once-a-second limit for Nominatim.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": env("DJANGO_CACHE_DIR", "/tmp/meet-halfway-cache"),
+    }
+}
 
 
 # ---------------------------------------------------------------------------
@@ -157,6 +174,21 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
     ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "TEST_REQUEST_DEFAULT_FORMAT": "json",
+}
+
+# API documentation (drf-spectacular)
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Meet Halfway API",
+    "DESCRIPTION": (
+        "Find a fair meeting point for a group of friends in Dublin and the venues around it. "
+        "Venues are public; everything else needs a logged-in user. "
+        "Log in at /api-auth/login/ before using \"Try it out\"."
+    ),
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,  # separate request and response schemas
 }
 
 
@@ -175,3 +207,23 @@ VENUES_GEOJSON_PATH = BASE_DIR / "data" / "dublin_venues.geojson"
 
 # Most venues the API returns in one response (protects the server and the browser).
 VENUE_LIST_LIMIT = 5000
+
+# Venue search around a meeting point: at most this many results, and how many
+# of the nearest venues to show when there are none within the radius.
+VENUE_SEARCH_LIMIT = 100
+VENUE_FALLBACK_COUNT = 5
+
+
+# ---------------------------------------------------------------------------
+# Address search (OpenStreetMap Nominatim)
+# ---------------------------------------------------------------------------
+NOMINATIM_URL = env("NOMINATIM_URL", "https://nominatim.openstreetmap.org/search")
+# Nominatim's usage policy asks every app to identify itself.
+NOMINATIM_USER_AGENT = env(
+    "NOMINATIM_USER_AGENT",
+    "MeetHalfway/1.0 (+https://github.com/gounianhao/Advanced_Web_Mapping_CA1)",
+)
+NOMINATIM_TIMEOUT_S = 8
+NOMINATIM_MIN_INTERVAL_S = 1          # at most one request per second for the whole app
+GEOCODE_CACHE_SECONDS = 60 * 60 * 24  # remember results for a day
+GEOCODE_RESULT_LIMIT = 5

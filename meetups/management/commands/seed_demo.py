@@ -12,6 +12,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from meetups.models import Friend, MeetupGroup
+from meetups.services import meeting
 
 DEMO_GROUP = "Friday coffee"
 
@@ -44,9 +45,11 @@ class Command(BaseCommand):
                 name=name,
                 defaults={"place_name": place, "location": Point(lon, lat, srid=4326)},
             )
+        meeting.compute_meeting(group)
 
         action = "Created" if created else "Updated"
         self.stdout.write(self.style.SUCCESS(
             f"{action} user '{user.username}' (password: {options['password']}) "
-            f"with group '{group.name}' of {group.friends.count()} friends."
+            f"with group '{group.name}' of {group.friends.count()} friends "
+            f"(fairness score {group.fairness_score})."
         ))

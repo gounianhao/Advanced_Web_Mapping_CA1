@@ -5,6 +5,7 @@ from django.contrib.gis import admin
 from django.db.models import Count
 
 from .models import Friend, MeetupGroup, Venue
+from .services import meeting
 
 _lat, _lon = settings.MAP_DEFAULT_CENTER
 
@@ -45,6 +46,7 @@ class MeetupGroupAdmin(DublinMapAdmin):
     search_fields = ("name", "owner__username")
     readonly_fields = ("fairness_score", "created_at", "updated_at")
     inlines = [FriendInline]
+    actions = ["recalculate"]
     fieldsets = [
         (None, {"fields": ["name", "owner", "search_radius_m"]}),
         (
@@ -65,6 +67,12 @@ class MeetupGroupAdmin(DublinMapAdmin):
     def friend_count(self, obj):
         return obj._friend_count
 
+    @admin.action(description="Recalculate the meeting point of the selected groups")
+    def recalculate(self, request, queryset):
+        for group in queryset:
+            meeting.refresh_meeting(group)
+        self.message_user(request, f"Recalculated {queryset.count()} group(s).")
+
 
 @admin.register(Friend)
 class FriendAdmin(DublinMapAdmin):
@@ -83,3 +91,22 @@ class FriendAdmin(DublinMapAdmin):
             },
         ),
     ]
+
+    # Moving or removing a friend here updates the group's meeting point, as in the API.
+    def save_model(self, request, obj, form, change):
+        old_group_id = form.initial.get("group") if change else None
+        super().save_model(request, obj, form, change)
+        meeting.refresh_meeting(obj.group)
+        if old_group_id and old_group_id != obj.group_id:  # moved to another group
+            meeting.refresh_meeting(MeetupGroup.objects.get(pk=old_group_id))
+
+    def delete_model(self, request, obj):
+        group = obj.group
+        super().delete_model(request, obj)
+        meeting.refresh_meeting(group)
+
+    def delete_queryset(self, request, queryset):
+        groups = {friend.group for friend in queryset}
+        super().delete_queryset(request, queryset)
+        for group in groups:
+            meeting.refresh_meeting(group)

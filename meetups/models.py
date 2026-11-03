@@ -38,6 +38,11 @@ class Venue(models.Model):
 class MeetupGroup(models.Model):
     """A group of friends planning to meet, plus the results PostGIS calculates for it."""
 
+    MIN_FRIENDS = 2      # needed for a meeting point
+    MAX_FRIENDS = 15
+    MIN_RADIUS_M = 50
+    MAX_RADIUS_M = 2000
+
     name = models.CharField(max_length=100)
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -47,7 +52,7 @@ class MeetupGroup(models.Model):
     search_radius_m = models.PositiveIntegerField(
         "search radius (m)",
         default=300,
-        validators=[MinValueValidator(50), MaxValueValidator(2000)],
+        validators=[MinValueValidator(MIN_RADIUS_M), MaxValueValidator(MAX_RADIUS_M)],
     )
 
     # Calculated from the friends' locations.
