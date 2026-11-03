@@ -5,6 +5,7 @@ The templates in templates/ and meetups/templates/ are the "View" layer.
 """
 
 from django.conf import settings
+from django.urls import reverse
 from django.views.generic import TemplateView
 
 
@@ -20,5 +21,6 @@ class MapView(TemplateView):
         context["map_config"] = {
             "center": list(settings.MAP_DEFAULT_CENTER),
             "zoom": settings.MAP_DEFAULT_ZOOM,
+            "venuesUrl": reverse("api:venue-list"),
         }
         return context

@@ -51,6 +51,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.gis",  # GeoDjango: spatial fields, lookups and functions
+    # Third-party apps
+    "rest_framework",
+    "rest_framework_gis",  # GeoJSON serializers and bounding-box filter
+    "django_filters",
     # Project apps
     "meetups",
 ]
@@ -139,8 +143,35 @@ SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 
 # ---------------------------------------------------------------------------
-# Map defaults
+# REST API (Django REST framework)
+# ---------------------------------------------------------------------------
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    # Secure by default: endpoints need a logged-in user unless they say otherwise.
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+        "rest_framework.renderers.BrowsableAPIRenderer",
+    ],
+}
+
+
+# ---------------------------------------------------------------------------
+# Map and data settings
 # ---------------------------------------------------------------------------
 # Starting view: Dublin city centre (the Spire, O'Connell Street) as (lat, lon).
 MAP_DEFAULT_CENTER = (53.3498, -6.2603)
 MAP_DEFAULT_ZOOM = 13
+
+# Area the app covers: Greater Dublin, as (min lon, min lat, max lon, max lat).
+SERVICE_AREA_BBOX = (-6.55, 53.18, -5.99, 53.64)
+
+# OpenStreetMap venues, downloaded by "manage.py fetch_venues".
+VENUES_GEOJSON_PATH = BASE_DIR / "data" / "dublin_venues.geojson"
+
+# Most venues the API returns in one response (protects the server and the browser).
+VENUE_LIST_LIMIT = 5000

@@ -4,10 +4,18 @@
 {% block title %}Map · Meet Halfway{% endblock %}
 
 {% block extra_css %}
-  {# Leaflet 1.9.4 (same version as the labs). #}
+  {# Leaflet 1.9.4 and the marker-cluster plugin, which groups nearby markers when zoomed out. #}
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H"
+        crossorigin="anonymous">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+        integrity="sha384-pmjIAcz2bAn0xukfxADbZIb3t8oRT9Sv0rvO+BR5Csr6Dhqq+nZs59P0pPKQJkEV"
+        crossorigin="anonymous">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+        integrity="sha384-wgw+aLYNQ7dlhK47ZPK7FRACiq7ROZwgFNg0m04avm4CaXS+Z9Y7nMu8yNjBKYC+"
         crossorigin="anonymous">
 {% endblock %}
 
@@ -25,14 +33,15 @@
 
   {# Sidebar: a normal column on large screens, a slide-in panel on phones and tablets. #}
   <aside class="app-sidebar" aria-label="Group panel">
-    <div class="offcanvas-lg offcanvas-start h-100" tabindex="-1" id="sidebar" aria-labelledby="sidebar-title">
+    <div class="offcanvas-lg offcanvas-start h-100 d-lg-flex flex-column" tabindex="-1" id="sidebar"
+         aria-labelledby="sidebar-title">
       <div class="offcanvas-header border-bottom">
         <h2 class="offcanvas-title h5 mb-0" id="sidebar-title">Your group</h2>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebar"
                 aria-label="Close group panel"></button>
       </div>
 
-      <div class="offcanvas-body d-flex flex-column gap-3 p-3">
+      <div class="offcanvas-body d-flex flex-column flex-grow-1 gap-3 p-3">
         <section aria-labelledby="how-title">
           <h2 id="how-title" class="h6 text-uppercase text-body-secondary mb-2">How it works</h2>
           <ol class="small mb-0 ps-3">
@@ -46,6 +55,20 @@
           <i class="bi bi-info-circle" aria-hidden="true"></i>
           Your groups and friends will appear here.
         </div>
+
+        <section aria-labelledby="venues-title">
+          <h2 id="venues-title" class="h6 text-uppercase text-body-secondary mb-2">Venues on the map</h2>
+          <ul class="list-unstyled small mb-2 venue-legend">
+            <li><span class="legend-dot venue-cafe" aria-hidden="true"></span> Cafés</li>
+            <li><span class="legend-dot venue-restaurant" aria-hidden="true"></span> Restaurants</li>
+            <li><span class="legend-dot venue-pub" aria-hidden="true"></span> Pubs</li>
+          </ul>
+          <p id="venue-status" class="small text-body-secondary mb-0" aria-live="polite">Loading venues…</p>
+        </section>
+
+        <p class="small text-body-secondary mt-auto mb-0">
+          Venue data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.
+        </p>
       </div>
     </div>
   </aside>
@@ -64,5 +87,9 @@
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH"
           crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"
+          integrity="sha384-eXVCORTRlv4FUUgS/xmOyr66XBVraen8ATNLMESp92FKXLAMiKkerixTiBvXriZr"
+          crossorigin="anonymous"></script>
   <script src="{% static 'js/map.js' %}"></script>
+  <script src="{% static 'js/venues.js' %}"></script>
 {% endblock %}

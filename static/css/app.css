@@ -3,6 +3,13 @@
  * Layout: navbar on top, then sidebar + map filling the rest of the screen.
  */
 
+/* ---- Colours shared by the map markers and the legend -------------------- */
+:root {
+  --venue-cafe: #b45309;        /* amber */
+  --venue-restaurant: #1d4ed8;  /* blue */
+  --venue-pub: #7e22ce;         /* purple */
+}
+
 /* ---- Full-height page ---------------------------------------------------- */
 html,
 body {
@@ -73,4 +80,27 @@ body {
 .leaflet-container:focus-visible {
   outline: 3px solid var(--bs-primary);
   outline-offset: -3px;
+}
+
+/* ---- Venue legend and popups --------------------------------------------- */
+.legend-dot {
+  display: inline-block;
+  width: 0.8rem;
+  height: 0.8rem;
+  margin-right: 0.35rem;
+  vertical-align: -0.1rem;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+
+.legend-dot.venue-cafe { background-color: var(--venue-cafe); }
+.legend-dot.venue-restaurant { background-color: var(--venue-restaurant); }
+.legend-dot.venue-pub { background-color: var(--venue-pub); }
+
+.venue-popup {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 11rem;
+  font-size: 0.875rem;
 }

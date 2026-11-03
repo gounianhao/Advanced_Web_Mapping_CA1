@@ -18,14 +18,25 @@ within 300 m and gives a fairness score based on how evenly the distances are sp
 Docker Desktop is required.
 
 ```bash
-cp .env.example .env                                # then set your own passwords and secret key
-docker compose up --build                           # start the containers
-docker compose exec web python manage.py migrate    # in a second terminal: create the tables
+cp .env.example .env                                    # then set your own passwords and secret key
+docker compose up --build
+
+# in a second terminal:
+docker compose exec web python manage.py migrate
+docker compose exec web python manage.py load_venues    # OpenStreetMap venues
+docker compose exec web python manage.py seed_demo      # demo user: demo / meethalfway-demo
 ```
 
-- App: http://localhost:8000
-- pgAdmin: http://localhost:5050. Register a server with host `db`, port `5432` and the
-  `POSTGRES_` values from `.env`.
+- App: http://localhost:8000 (admin at `/admin/`)
+- pgAdmin: http://localhost:5050 (server host `db`, port `5432`)
 
-To stop, run `docker compose down`. Adding `-v` also deletes the database.
+## Data
 
+About 2,900 cafés, restaurants and pubs in Greater Dublin from OpenStreetMap, saved in
+`data/dublin_venues.geojson`. Run `manage.py fetch_venues` to download them again.
+
+## API
+
+- `GET /api/venues/` returns all venues as GeoJSON
+- `GET /api/venues/?in_bbox=minLon,minLat,maxLon,maxLat` returns only the venues in an area
+- `GET /api/venues/?category=cafe` filters by `cafe`, `restaurant` or `pub`
