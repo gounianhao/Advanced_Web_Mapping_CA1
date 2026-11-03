@@ -101,7 +101,7 @@
     setStatus("Loading venues…");
 
     try {
-      const response = await fetch(`${config.venuesUrl}?in_bbox=${bbox}`, {
+      const response = await fetch(`${config.urls.venues}?in_bbox=${bbox}`, {
         headers: { Accept: "application/json" },
         signal: request.signal,
       });
@@ -128,4 +128,8 @@
   });
 
   loadVenues();
+
+  // Shared with meetup.js: the layer (for the layer switcher) and the popup builder.
+  window.MeetHalfway.venueLayer = clusters;
+  window.MeetHalfway.venuePopup = popupContent;
 })();

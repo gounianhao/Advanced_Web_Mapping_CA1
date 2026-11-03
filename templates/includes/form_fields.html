@@ -1,0 +1,18 @@
+{# Renders every field of a form with Bootstrap 5 labels, help text and error messages. #}
+{% if form.non_field_errors %}
+  <div class="alert alert-danger" role="alert">
+    {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+  </div>
+{% endif %}
+{% for field in form %}
+  <div class="mb-3">
+    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {% for error in field.errors %}
+      <div class="invalid-feedback d-block">{{ error }}</div>
+    {% endfor %}
+    {% if field.help_text %}
+      <div class="form-text small" id="{{ field.auto_id }}_helptext">{{ field.help_text|safe }}</div>
+    {% endif %}
+  </div>
+{% endfor %}

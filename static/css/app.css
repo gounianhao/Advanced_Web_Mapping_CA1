@@ -104,3 +104,137 @@ body {
   min-width: 11rem;
   font-size: 0.875rem;
 }
+
+/* ---- Pages without the map (log in, register) ----------------------------- */
+.app-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+/* ---- Messages after logging in, registering, ... -------------------------- */
+.app-messages {
+  position: fixed;
+  top: 4rem;
+  right: 1rem;
+  z-index: 1100;
+  width: min(24rem, calc(100% - 2rem));
+}
+
+/* ---- Friends, meeting point and places on the map ------------------------- */
+.friend-marker,
+.meeting-marker,
+.place-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.friend-marker {
+  color: #fff;
+  font-size: 0.8rem;
+  cursor: grab;
+}
+
+.meeting-marker {
+  background-color: #212529;
+  color: #ffc107;
+  font-size: 1.05rem;
+}
+
+.place-marker {
+  background-color: #fff;
+  color: #212529;
+  font-size: 0.75rem;
+  border-color: var(--venue-cafe);
+}
+
+.place-marker.place-restaurant { border-color: var(--venue-restaurant); }
+.place-marker.place-pub { border-color: var(--venue-pub); }
+
+/* Keyboard focus on a marker */
+.leaflet-marker-icon:focus-visible {
+  outline: 3px solid var(--bs-primary);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+.map-popup {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 10rem;
+  font-size: 0.875rem;
+}
+
+/* While choosing a friend's location on the map */
+.leaflet-container.is-picking,
+.leaflet-container.is-picking .leaflet-interactive {
+  cursor: crosshair;
+}
+
+.map-hint {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  z-index: 1000;
+  max-width: calc(100% - 8rem);
+  padding: 0.4rem 0.8rem;
+  transform: translateX(-50%);
+  background-color: var(--bs-body-bg);
+  border: 1px solid var(--bs-primary);
+  border-radius: var(--bs-border-radius);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+/* ---- Sidebar lists and legend --------------------------------------------- */
+.friend-dot {
+  flex: 0 0 auto;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+}
+
+.map-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.15rem;
+}
+
+.legend-friend,
+.legend-meeting {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  font-size: 0.6rem;
+  font-weight: 700;
+}
+
+.legend-friend { background-color: #c2185b; color: #fff; }
+.legend-meeting { background-color: #212529; color: #ffc107; }
+
+.legend-line {
+  display: inline-block;
+  width: 1.1rem;
+  border-top: 3px dashed #1565c0;
+}
+
+.legend-area,
+.legend-search {
+  display: inline-block;
+  width: 1.1rem;
+  height: 0.8rem;
+}
+
+.legend-area { background-color: rgba(13, 110, 253, 0.15); border: 2px solid #0d6efd; }
+.legend-search { background-color: rgba(25, 135, 84, 0.12); border: 2px dashed #198754; border-radius: 50%; }

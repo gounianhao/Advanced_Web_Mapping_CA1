@@ -40,6 +40,8 @@ def env_list(name, default=""):
 # ---------------------------------------------------------------------------
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env_bool("DJANGO_DEBUG", False)
+if not DEBUG and SECRET_KEY.startswith("change-me"):
+    raise ImproperlyConfigured("Set DJANGO_SECRET_KEY in .env to a long random value.")
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS")
 
@@ -58,6 +60,7 @@ INSTALLED_APPS = [
     "drf_spectacular",  # OpenAPI schema and Swagger UI at /api/docs/
     # Project apps
     "meetups",
+    "accounts",
 ]
 
 MIDDLEWARE = [
@@ -114,6 +117,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "meetups:map"
 LOGOUT_REDIRECT_URL = "meetups:map"
 
@@ -151,12 +155,46 @@ CACHES = {
 
 
 # ---------------------------------------------------------------------------
-# Security headers that work over plain HTTP
+# Security
 # ---------------------------------------------------------------------------
+# These work over plain HTTP. Nginx adds the Content-Security-Policy header.
+X_FRAME_OPTIONS = "DENY"           # the site can't be shown inside another site's frame
+SECURE_CONTENT_TYPE_NOSNIFF = True
 # OpenStreetMap's tile servers reject tile requests that have no Referer
 # header. Django's default policy ("same-origin") would strip it, so use the
 # browser default, which sends only the site's origin to other sites.
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+SESSION_COOKIE_HTTPONLY = True     # JavaScript can't read the login cookie
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  # stay logged in for a week
+CSRF_COOKIE_HTTPONLY = True        # the page hands the CSRF token to JavaScript itself
+CSRF_COOKIE_SAMESITE = "Lax"
+
+# Nginx tells Django whether the browser connected over HTTPS.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Only for a site served over HTTPS: set these in .env when a certificate is added.
+SESSION_COOKIE_SECURE = env_bool("DJANGO_SECURE_COOKIES", False)
+CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
+SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", False)
+SECURE_REDIRECT_EXEMPT = [r"^healthz/$"]  # the container health check uses plain HTTP
+SECURE_HSTS_SECONDS = int(env("DJANGO_SECURE_HSTS_SECONDS", "0"))
+
+
+# ---------------------------------------------------------------------------
+# Logging: everything goes to the container output (docker compose logs web)
+# ---------------------------------------------------------------------------
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {"simple": {"format": "{asctime} {levelname} {name}: {message}", "style": "{"}},
+    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "simple"}},
+    "root": {"handlers": ["console"], "level": "WARNING"},
+    "loggers": {
+        "django": {"handlers": ["console"], "level": env("DJANGO_LOG_LEVEL", "INFO"), "propagate": False},
+    },
+}
 
 
 # ---------------------------------------------------------------------------
@@ -174,6 +212,20 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
     ],
+    # Limits per minute. Dragging a friend recalculates the meeting point live,
+    # so logged-in users get plenty; address search has its own, lower limit.
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+        "rest_framework.throttling.ScopedRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "120/min",
+        "user": "300/min",
+        "geocode": "30/min",
+    },
+    # Requests arrive through Nginx, so the client's address is in X-Forwarded-For.
+    "NUM_PROXIES": 1,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
@@ -184,7 +236,7 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": (
         "Find a fair meeting point for a group of friends in Dublin and the venues around it. "
         "Venues are public; everything else needs a logged-in user. "
-        "Log in at /api-auth/login/ before using \"Try it out\"."
+        "Log in at /accounts/login/ before using \"Try it out\"."
     ),
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,

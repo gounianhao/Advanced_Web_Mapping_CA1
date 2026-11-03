@@ -42,23 +42,146 @@
       </div>
 
       <div class="offcanvas-body d-flex flex-column flex-grow-1 gap-3 p-3">
-        <section aria-labelledby="how-title">
-          <h2 id="how-title" class="h6 text-uppercase text-body-secondary mb-2">How it works</h2>
-          <ol class="small mb-0 ps-3">
-            <li>Add where each friend is.</li>
-            <li>Meet Halfway finds the middle point of the group.</li>
-            <li>See cafés within 300&nbsp;m and how fair the spot is for everyone.</li>
-          </ol>
-        </section>
+        {% if user.is_authenticated %}
+          {# Error messages from the API appear here. #}
+          <div id="app-alert" class="alert alert-danger small py-2 mb-0 d-flex align-items-start gap-2 d-none" role="alert">
+            <span id="app-alert-text" class="flex-grow-1"></span>
+            <button type="button" class="btn-close btn-sm" id="app-alert-close" aria-label="Hide message"></button>
+          </div>
 
-        <div class="alert alert-secondary small mb-0" role="status">
-          <i class="bi bi-info-circle" aria-hidden="true"></i>
-          Your groups and friends will appear here.
-        </div>
+          {# ---- Group ---- #}
+          <section aria-labelledby="group-title">
+            <h2 id="group-title" class="h6 text-uppercase text-body-secondary mb-2">Group</h2>
+            <div id="group-picker" class="input-group input-group-sm d-none">
+              <label class="visually-hidden" for="group-select">Choose a group</label>
+              <select id="group-select" class="form-select"></select>
+              <button id="group-delete" class="btn btn-outline-danger" type="button"
+                      title="Delete this group" aria-label="Delete this group">
+                <i class="bi bi-trash" aria-hidden="true"></i>
+              </button>
+            </div>
+            <form id="group-form" class="input-group input-group-sm mt-2">
+              <label class="visually-hidden" for="group-name">New group name</label>
+              <input id="group-name" class="form-control" maxlength="100" required
+                     placeholder="New group, e.g. Friday coffee" autocomplete="off">
+              <button class="btn btn-outline-primary" type="submit">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> Create
+              </button>
+            </form>
+          </section>
 
-        <section aria-labelledby="venues-title">
-          <h2 id="venues-title" class="h6 text-uppercase text-body-secondary mb-2">Venues on the map</h2>
-          <ul class="list-unstyled small mb-2 venue-legend">
+          <div id="group-panel" class="d-flex flex-column gap-3 d-none">
+            {# ---- Friends ---- #}
+            <section aria-labelledby="friends-title">
+              <h2 id="friends-title" class="h6 text-uppercase text-body-secondary mb-2">
+                Friends <span id="friend-count" class="badge rounded-pill text-bg-secondary"></span>
+              </h2>
+              <ul id="friend-list" class="list-unstyled small mb-2"></ul>
+              <p id="friends-empty" class="small text-body-secondary mb-2">
+                No friends yet. Add at least two to find a meeting point.
+              </p>
+
+              <form id="friend-form" class="border rounded p-2 bg-body-tertiary" novalidate>
+                <label for="friend-name" class="form-label small mb-1">Friend's name</label>
+                <input id="friend-name" class="form-control form-control-sm mb-2" maxlength="60"
+                       autocomplete="off" placeholder="e.g. Aoife">
+
+                <label for="friend-address" class="form-label small mb-1">Where are they?</label>
+                <div class="input-group input-group-sm">
+                  <input id="friend-address" class="form-control" maxlength="200" autocomplete="off"
+                         placeholder="Address or place" aria-describedby="friend-address-help">
+                  <button id="address-search" class="btn btn-primary" type="submit">
+                    <i class="bi bi-search" aria-hidden="true"></i> Search
+                  </button>
+                </div>
+                <div id="friend-address-help" class="form-text small mt-1">Press Enter to search Dublin.</div>
+                <div id="address-results" class="list-group list-group-flush small mt-1" aria-live="polite"></div>
+
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                  <button id="pick-on-map" type="button" class="btn btn-outline-secondary btn-sm" aria-pressed="false">
+                    <i class="bi bi-cursor" aria-hidden="true"></i> Pick on map
+                  </button>
+                  <button id="use-location" type="button" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-crosshair" aria-hidden="true"></i> Use my location
+                  </button>
+                </div>
+              </form>
+            </section>
+
+            {# ---- Meeting point and fairness ---- #}
+            <section aria-labelledby="result-title">
+              <h2 id="result-title" class="h6 text-uppercase text-body-secondary mb-2">
+                Meeting point
+                <span id="busy" class="spinner-border spinner-border-sm text-secondary ms-1 d-none" role="status">
+                  <span class="visually-hidden">Updating…</span>
+                </span>
+              </h2>
+              <div class="d-flex justify-content-between align-items-baseline small mb-1">
+                <span>Fairness</span>
+                <strong id="fairness-text" aria-live="polite">Add two friends</strong>
+              </div>
+              <div id="fairness-meter" class="progress" role="progressbar" aria-label="Fairness score"
+                   aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div id="fairness-bar" class="progress-bar"></div>
+              </div>
+              <p id="result-stats" class="small text-body-secondary mt-2 mb-0"></p>
+            </section>
+
+            {# ---- Places to meet ---- #}
+            <section aria-labelledby="places-title">
+              <h2 id="places-title" class="h6 text-uppercase text-body-secondary mb-2">Places to meet</h2>
+              <div class="row g-2 small align-items-end">
+                <div class="col-7">
+                  <label for="radius" class="form-label mb-0">
+                    Within <output id="radius-value" for="radius">300 m</output>
+                  </label>
+                  <input type="range" class="form-range" id="radius" step="50">
+                </div>
+                <div class="col-5">
+                  <label for="category" class="form-label mb-1">Type</label>
+                  <select id="category" class="form-select form-select-sm">
+                    {% for value, label in venue_categories %}
+                      <option value="{{ value }}">{{ label }}s</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="btn-group btn-group-sm w-100 my-2" role="group" aria-label="Sort places">
+                <input type="radio" class="btn-check" name="sort" id="sort-nearest" value="nearest" checked>
+                <label class="btn btn-outline-secondary" for="sort-nearest">Nearest</label>
+                <input type="radio" class="btn-check" name="sort" id="sort-fairest" value="fairest">
+                <label class="btn btn-outline-secondary" for="sort-fairest">Fairest for everyone</label>
+              </div>
+              <div id="fallback-note" class="alert alert-warning small py-2 mb-2 d-none" role="status"></div>
+              <p id="venue-empty" class="small text-body-secondary mb-0">Places appear once the group has a meeting point.</p>
+              <ol id="venue-list" class="list-group list-group-numbered small"></ol>
+            </section>
+          </div>
+        {% else %}
+          <section aria-labelledby="how-title">
+            <h2 id="how-title" class="h6 text-uppercase text-body-secondary mb-2">How it works</h2>
+            <ol class="small mb-3 ps-3">
+              <li>Add where each friend is.</li>
+              <li>Meet Halfway finds the middle point of the group.</li>
+              <li>See cafés nearby and how fair the spot is for everyone.</li>
+            </ol>
+            <div class="d-flex gap-2">
+              <a class="btn btn-primary btn-sm" href="{% url 'accounts:register' %}">Register</a>
+              <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">Log in</a>
+            </div>
+          </section>
+        {% endif %}
+
+        {# ---- Legend ---- #}
+        <section aria-labelledby="legend-title">
+          <h2 id="legend-title" class="h6 text-uppercase text-body-secondary mb-2">On the map</h2>
+          <ul class="list-unstyled small mb-2 map-legend">
+            {% if user.is_authenticated %}
+              <li><span class="legend-friend" aria-hidden="true">A</span> Friend (drag to move)</li>
+              <li><span class="legend-meeting" aria-hidden="true"><i class="bi bi-star-fill"></i></span> Meeting point</li>
+              <li><span class="legend-line" aria-hidden="true"></span> Straight line to the meeting point</li>
+              <li><span class="legend-area" aria-hidden="true"></span> Group area &nbsp;<span class="legend-search" aria-hidden="true"></span> Search area</li>
+            {% endif %}
             <li><span class="legend-dot venue-cafe" aria-hidden="true"></span> Cafés</li>
             <li><span class="legend-dot venue-restaurant" aria-hidden="true"></span> Restaurants</li>
             <li><span class="legend-dot venue-pub" aria-hidden="true"></span> Pubs</li>
@@ -67,7 +190,7 @@
         </section>
 
         <p class="small text-body-secondary mt-auto mb-0">
-          Venue data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.
+          Venue data and addresses © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.
         </p>
       </div>
     </div>
@@ -76,6 +199,10 @@
   {# The map fills the rest of the screen. #}
   <div class="app-map-wrap">
     <div id="map" role="region" aria-label="Interactive map of Dublin"></div>
+    {% if user.is_authenticated %}
+      {# Instructions shown over the map while picking a friend's location. #}
+      <div id="map-hint" class="map-hint shadow-sm d-none" role="status" aria-live="polite"></div>
+    {% endif %}
   </div>
 </div>
 
@@ -92,4 +219,7 @@
           crossorigin="anonymous"></script>
   <script src="{% static 'js/map.js' %}"></script>
   <script src="{% static 'js/venues.js' %}"></script>
+  {% if user.is_authenticated %}
+    <script src="{% static 'js/meetup.js' %}"></script>
+  {% endif %}
 {% endblock %}

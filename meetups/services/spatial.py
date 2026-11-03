@@ -123,23 +123,26 @@ def search_area(point, radius_m):
 # ---------------------------------------------------------------------------
 # Venues around the meeting point
 # ---------------------------------------------------------------------------
+# Kept as a constant so "manage.py explain_venue_search" can show the plan of this exact query.
+VENUES_WITHIN_SQL = """
+    SELECT v.*,
+           ST_Distance(v.location::geography,
+                       ST_SetSRID(ST_MakePoint(%(lon)s, %(lat)s), 4326)::geography) AS distance_m
+    FROM meetups_venue AS v
+    WHERE v.category = ANY(%(categories)s)
+      -- true distance in metres, answered from the GiST index on location::geography
+      AND ST_DWithin(v.location::geography,
+                     ST_SetSRID(ST_MakePoint(%(lon)s, %(lat)s), 4326)::geography,
+                     %(radius)s)
+    ORDER BY distance_m, v.name
+    LIMIT %(limit)s
+"""
+
+
 def venues_within(point, radius_m, categories, limit):
     """Venues of the given categories within radius_m of the point, nearest first, each with .distance_m."""
-    sql = """
-        SELECT v.*,
-               ST_Distance(v.location::geography,
-                           ST_SetSRID(ST_MakePoint(%(lon)s, %(lat)s), 4326)::geography) AS distance_m
-        FROM meetups_venue AS v
-        WHERE v.category = ANY(%(categories)s)
-          -- true distance in metres, answered from the GiST index on location::geography
-          AND ST_DWithin(v.location::geography,
-                         ST_SetSRID(ST_MakePoint(%(lon)s, %(lat)s), 4326)::geography,
-                         %(radius)s)
-        ORDER BY distance_m, v.name
-        LIMIT %(limit)s
-    """
     params = {"categories": list(categories), "radius": radius_m, "limit": limit, **_lon_lat(point)}
-    return list(Venue.objects.raw(sql, params))
+    return list(Venue.objects.raw(VENUES_WITHIN_SQL, params))
 
 
 def nearest_venues(point, categories, count):

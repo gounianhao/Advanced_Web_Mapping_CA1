@@ -30,9 +30,37 @@
       </a>
       <div class="d-flex align-items-center gap-2">
         {% block navbar_actions %}{% endblock %}
+        <a class="btn btn-link btn-sm link-light text-decoration-none d-none d-sm-inline-block"
+           href="{% url 'api-docs' %}">
+          <i class="bi bi-braces" aria-hidden="true"></i> API
+        </a>
+        {% if user.is_authenticated %}
+          <span class="navbar-text small d-none d-md-inline">
+            <i class="bi bi-person-circle" aria-hidden="true"></i> {{ user.username }}
+          </span>
+          {# Logging out changes state, so it is a POST form rather than a link. #}
+          <form method="post" action="{% url 'accounts:logout' %}" class="m-0">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-light btn-sm">Log out</button>
+          </form>
+        {% else %}
+          <a class="btn btn-outline-light btn-sm" href="{% url 'accounts:login' %}">Log in</a>
+          <a class="btn btn-primary btn-sm" href="{% url 'accounts:register' %}">Register</a>
+        {% endif %}
       </div>
     </div>
   </nav>
+
+  {% if messages %}
+    <div class="app-messages" aria-live="polite">
+      {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show shadow-sm" role="status">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
 
   <main id="main" class="app-main" tabindex="-1">
     {% block content %}{% endblock %}

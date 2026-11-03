@@ -231,6 +231,8 @@ class GeocodeView(APIView):
     Results are cached and Nominatim is asked at most once per second.
     """
 
+    throttle_scope = "geocode"  # its own per-user limit (see DEFAULT_THROTTLE_RATES)
+
     @extend_schema(
         parameters=[GeocodeQuerySerializer],
         responses={

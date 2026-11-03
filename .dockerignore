@@ -11,3 +11,5 @@ staticfiles/
 .DS_Store
 *.docx
 ~$*
+# Documentation images are not needed inside the image.
+docs/
